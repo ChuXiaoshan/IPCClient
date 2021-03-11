@@ -4,10 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.os.Bundle
-import android.os.IBinder
-import android.os.Message
-import android.os.Messenger
+import android.os.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.blankj.utilcode.util.LogUtils
@@ -16,14 +13,37 @@ import com.cxsplay.ipcserver.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var bind: ActivityMainBinding
+    companion object {
+        const val MESSAGE_NEW_BOOK_ARRIVED = 1
+    }
 
+    private lateinit var bind: ActivityMainBinding
 
     private var isService1Bond = false
     private var isService2Bond = false
 
     private var mService: Messenger? = null
     private val mGetReplayMessenger = Messenger(MessengerHandler())
+
+    private var mRemoteBookManager: IBookManager? = null
+
+    private val mHandler: Handler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            when (msg.what) {
+                MESSAGE_NEW_BOOK_ARRIVED -> LogUtils.d("---receive new book: " + msg.obj)
+                else -> super.handleMessage(msg)
+            }
+        }
+    }
+
+    private val mOnNewBookArrivedListener by lazy {
+        object : IOnNewBookArrivedListener.Stub() {
+            @Throws(RemoteException::class)
+            override fun onNewBookArrived(newBook: Book) {
+                mHandler.obtainMessage(MESSAGE_NEW_BOOK_ARRIVED, newBook).sendToTarget()
+            }
+        }
+    }
 
     //Messenger demo 的 ServiceConnection 实例。
     private val mConnection by lazy {
@@ -47,12 +67,22 @@ class MainActivity : AppCompatActivity() {
         object : ServiceConnection {
             override fun onServiceConnected(componentName: ComponentName, iBinder: IBinder) {
                 val bookManager = IBookManager.Stub.asInterface(iBinder)
+                mRemoteBookManager = bookManager
                 val list = bookManager.bookList
                 LogUtils.d("---query book list, list type:${list.javaClass.canonicalName}")
                 LogUtils.d("---query book list: $list")
+                val newBook = Book(3, "Android 开发艺术探索")
+                bookManager.addBook(newBook)
+                LogUtils.d("---add Book--->$newBook")
+                val newList = bookManager.bookList
+                LogUtils.d("---query book list: $newList")
+                bookManager.registerListener(mOnNewBookArrivedListener)
             }
 
-            override fun onServiceDisconnected(componentName: ComponentName) {}
+            override fun onServiceDisconnected(componentName: ComponentName) {
+                mRemoteBookManager = null
+                LogUtils.d("---binder died.")
+            }
         }
     }
 
@@ -91,6 +121,10 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         if (isService1Bond) unbindService(mConnection)
         if (isService2Bond) unbindService(mBookConnection)
+        if (mRemoteBookManager != null && mRemoteBookManager!!.asBinder().isBinderAlive) {
+            LogUtils.d("---unregister listener:$mOnNewBookArrivedListener")
+            mRemoteBookManager!!.unregisterListener(mOnNewBookArrivedListener)
+        }
         super.onDestroy()
     }
 }
