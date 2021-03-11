@@ -1,36 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.cxsplay.ipcserver.MainActivity">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <Button
-            android:id="@+id/btn_service1"
+            android:id="@+id/btn_bind"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Messenger Demo"
+            android:text="Bind Service"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <Button
-            android:id="@+id/btn_service2"
-            android:layout_width="wrap_content"
+        <EditText
+            android:id="@+id/et_input"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="AIDL Demo"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btn_service1" />
+            app:layout_constraintTop_toBottomOf="@+id/btn_bind" />
 
         <Button
-            android:id="@+id/btn_service3"
+            android:id="@+id/btn_send"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Socket Demo"
+            android:text="send message"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btn_service2" />
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/et_input" />
+
+        <TextView
+            android:id="@+id/tv_receive"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btn_send" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

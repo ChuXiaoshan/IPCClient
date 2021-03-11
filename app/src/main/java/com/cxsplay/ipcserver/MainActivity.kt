@@ -1,90 +1,14 @@
 package com.cxsplay.ipcserver
 
-import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
-import android.content.ServiceConnection
-import android.os.*
+import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
-import com.blankj.utilcode.util.LogUtils
-import com.cxsplay.ipcserver.Constants.createExplicitFromImplicitIntent
 import com.cxsplay.ipcserver.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
-    companion object {
-        const val MESSAGE_NEW_BOOK_ARRIVED = 1
-    }
-
     private lateinit var bind: ActivityMainBinding
-
-    private var isService1Bond = false
-    private var isService2Bond = false
-
-    private var mService: Messenger? = null
-    private val mGetReplayMessenger = Messenger(MessengerHandler())
-
-    private var mRemoteBookManager: IBookManager? = null
-
-    private val mHandler: Handler = object : Handler(Looper.getMainLooper()) {
-        override fun handleMessage(msg: Message) {
-            when (msg.what) {
-                MESSAGE_NEW_BOOK_ARRIVED -> LogUtils.d("---receive new book: " + msg.obj)
-                else -> super.handleMessage(msg)
-            }
-        }
-    }
-
-    private val mOnNewBookArrivedListener by lazy {
-        object : IOnNewBookArrivedListener.Stub() {
-            @Throws(RemoteException::class)
-            override fun onNewBookArrived(newBook: Book) {
-                mHandler.obtainMessage(MESSAGE_NEW_BOOK_ARRIVED, newBook).sendToTarget()
-            }
-        }
-    }
-
-    //Messenger demo 的 ServiceConnection 实例。
-    private val mConnection by lazy {
-        object : ServiceConnection {
-            override fun onServiceConnected(componentName: ComponentName, iBinder: IBinder) {
-                mService = Messenger(iBinder)
-                val msg = Message.obtain(null, Constants.MSG_FROM_CLIENT)
-                val data = Bundle()
-                data.putString("msg", "hello, this is client.")
-                msg.data = data
-                msg.replyTo = mGetReplayMessenger
-                mService!!.send(msg)
-            }
-
-            override fun onServiceDisconnected(componentName: ComponentName) {}
-        }
-    }
-
-    // AIDL demo 的 ServiceConnection 实例。
-    private val mBookConnection by lazy {
-        object : ServiceConnection {
-            override fun onServiceConnected(componentName: ComponentName, iBinder: IBinder) {
-                val bookManager = IBookManager.Stub.asInterface(iBinder)
-                mRemoteBookManager = bookManager
-                val list = bookManager.bookList
-                LogUtils.d("---query book list, list type:${list.javaClass.canonicalName}")
-                LogUtils.d("---query book list: $list")
-                val newBook = Book(3, "Android 开发艺术探索")
-                bookManager.addBook(newBook)
-                LogUtils.d("---add Book--->$newBook")
-                val newList = bookManager.bookList
-                LogUtils.d("---query book list: $newList")
-                bookManager.registerListener(mOnNewBookArrivedListener)
-            }
-
-            override fun onServiceDisconnected(componentName: ComponentName) {
-                mRemoteBookManager = null
-                LogUtils.d("---binder died.")
-            }
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -93,38 +17,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun init() {
-        bind.btnService1.setOnClickListener { bindService1() }
-        bind.btnService2.setOnClickListener { bindBookService() }
-    }
-
-    private fun bindService1() {
-        val intent = Intent()
-        intent.action = "com.cxsplay.ipcservice.service"
-        val eintent = Intent(createExplicitFromImplicitIntent(this, intent))
-        isService1Bond = bindService(eintent, mConnection, Context.BIND_AUTO_CREATE)
-    }
-
-    private fun bindBookService() {
-        val intent = Intent()
-        intent.action = "com.cxsplay.ipcservice.BookManagerService"
-        val eintent = Intent(createExplicitFromImplicitIntent(this, intent))
-        isService2Bond = bindService(eintent, mBookConnection, Context.BIND_AUTO_CREATE)
-    }
-
-    private fun bindService() {
-        val intent = Intent()
-        intent.action = "com.cxsplay.ipcservice.service"
-        intent.setPackage("com.cxsplay.ipcservice")
-        isService1Bond = bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
-    }
-
-    override fun onDestroy() {
-        if (isService1Bond) unbindService(mConnection)
-        if (isService2Bond) unbindService(mBookConnection)
-        if (mRemoteBookManager != null && mRemoteBookManager!!.asBinder().isBinderAlive) {
-            LogUtils.d("---unregister listener:$mOnNewBookArrivedListener")
-            mRemoteBookManager!!.unregisterListener(mOnNewBookArrivedListener)
-        }
-        super.onDestroy()
+        bind.btnService1.setOnClickListener { startActivity(Intent(this, MessengerActivity::class.java)) }
+        bind.btnService2.setOnClickListener { startActivity(Intent(this, AidlActivity::class.java)) }
+        bind.btnService3.setOnClickListener { startActivity(Intent(this, SocketActivity::class.java)) }
     }
 }
