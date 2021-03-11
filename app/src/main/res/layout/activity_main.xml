@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="com.cxsplay.ipcserver.MainActivity">
+
+        <Button
+            android:id="@+id/btn_service1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="绑定 Messenger Service"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/btn_service2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="绑定 Book Service"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btn_service1" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
