@@ -28,6 +28,7 @@ class SocketActivity : AppCompatActivity() {
     private var mClientSocket: Socket? = null
 
     private val mHandler: Handler = object : Handler(Looper.getMainLooper()) {
+
         override fun handleMessage(msg: Message) {
             when (msg.what) {
                 MESSAGE_RECEIVE_NEW_MSG -> bind.tvReceive.text = bind.tvReceive.text.toString() + msg.obj.toString()
